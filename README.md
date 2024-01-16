@@ -1,33 +1,15 @@
----
-title: ExpressJS Postgres
-description: An ExpressJS server that connects to a PostgreSQL database
-tags:
-  - express
-  - postgresql
-  - typescript
----
+# Higo Analytic Service
 
-# ExpressJS Postgres Example
+This service provides some summary processing some datasets
 
-This example starts an [ExpressJS](https://expressjs.com/) server that connects
-to a Railway PostgreSQL database.
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/VUVlu3)
-
-## ✨ Features
-
-- Postgres
-- Express
-- TypeScript
-
-## 💁‍♀️ How to use
+## 🐌 How to run
 
 - Install dependencies `yarn`
-- [Create a Railway project with the Postgres plugin](https://dev.new)
-- Connect to your Railway project `railway link`
-- Start the server `railway run yarn dev`
+- Make file `.env` and fill with your credential, look at `.env.example` for filling the field needed
+- Run migration table and Insert the csv file
+- Start the server run `yarn dev`
 
 ## 📝 Notes
-
-The server started simply returns the current time in the database. The SQL
-query is located in `src/index.js`.
+- The dataset file
+[download here](https://drive.google.com/file/d/1-Kw1W9qG-tZO_6I-8N98Ka04ABjSBXr9/view?usp=sharing)
