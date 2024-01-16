@@ -3,7 +3,7 @@ import { pgQueryHandler } from "../db/index.js"
 class UserActivityRepo {
     async getDistinctUserAll() {
         let queryStr = `
-            select COUNT(distinct email) as unique_user_by_email from user_activities;
+            SELECT COUNT(distinct email) as unique_user_by_email from user_activities;
         `
         let responseData = await pgQueryHandler(queryStr)
         return responseData
@@ -15,6 +15,48 @@ class UserActivityRepo {
         FROM public.user_activities
         GROUP BY date
         ORDER BY date;
+    `
+        let responseData = await pgQueryHandler(queryStr)
+        return responseData
+    }
+
+    async getCountNewAndReturningUser() {
+        let queryStr = `
+        WITH user_counts AS (
+            SELECT
+              name,
+              date,
+              MIN(login_hour) AS first_login_hour
+            FROM user_activities
+            GROUP BY name, date
+          )
+          SELECT
+            COUNT(DISTINCT CASE
+              WHEN ua.login_hour = uc.first_login_hour THEN ua.name
+            END) AS new_users,
+            COUNT(DISTINCT CASE
+              WHEN ua.login_hour != uc.first_login_hour THEN ua.name
+            END) AS returning_users
+          FROM user_activities ua
+          JOIN user_counts uc ON ua.name = uc.name AND ua.date = uc.date;
+    `
+        let responseData = await pgQueryHandler(queryStr)
+        return responseData
+    }
+
+    async getNewAndReturningUserData() {
+        let queryStr = `
+        SELECT
+            name,
+            login_hour,
+            date,
+        CASE
+          WHEN ROW_NUMBER() OVER (PARTITION BY name, date ORDER BY login_hour) = 1 THEN 'NEW'
+          ELSE 'RETURNING'
+        END AS is_new
+        FROM user_activities ua
+        order by login_hour, date;
+      
     `
         let responseData = await pgQueryHandler(queryStr)
         return responseData
@@ -144,6 +186,62 @@ class UserActivityRepo {
         FROM digital_interest_group_data digd
         ORDER BY total_count_per_interest DESC;
     `
+        let responseData = await pgQueryHandler(queryStr)
+        return responseData
+    }
+
+    async getTopFiveUserPerLocation() {
+        let queryStr = `
+        WITH ranked_user_data AS (
+            SELECT
+              name_of_location,
+              name,
+              age,
+              gender,
+              email,
+              phone_number,
+              ROW_NUMBER() OVER (PARTITION BY name_of_location ORDER BY COUNT(*) DESC) AS rnk
+            FROM public.user_activities
+            GROUP BY name_of_location, name, age, gender, email, phone_number
+          )
+          SELECT
+            name_of_location,
+            name,
+            age,
+            gender,
+            email,
+            phone_number,
+            rnk as rank
+          FROM ranked_user_data
+          WHERE rnk <= 5;
+    `
+        let responseData = await pgQueryHandler(queryStr)
+        return responseData
+    }
+
+    async getUserDetail(limit, offset) {
+        let queryStr = `
+        SELECT
+            DISTINCT email,
+            name,
+            age,
+            gender,
+            phone_number
+            FROM user_activities ua
+        GROUP BY email, name, age, gender, phone_number
+        LIMIT $1
+        OFFSET $2
+    `
+        let responseData = await pgQueryHandler(queryStr, [limit, offset])
+        return responseData
+    }
+
+    async countAllUser() {
+        let queryStr = `
+        SELECT
+            COUNT(DISTINCT email)
+            FROM user_activities ua
+        `
         let responseData = await pgQueryHandler(queryStr)
         return responseData
     }

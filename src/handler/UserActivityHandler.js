@@ -18,12 +18,35 @@ class UserActivityHandler {
         const data = await userActivityService.getSegmentation()
       return res
         .status(200)
-        .json({ message: "user activites segmentation data", status: "success", data: data });
+        .json({ message: "user activities segmentation data", status: "success", data: data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async topFivePerLocation(req, res, next) {
+    try {
+        const data = await userActivityService.topFivePerLocation()
+      return res
+        .status(200)
+        .json({ message: "top five user by location data", status: "success", data: data });
     } catch (error) {
       next(error);
     }
   }
  
+  static async userDetails(req, res, next) {
+    try {
+        const limit = req.query?.limit || 10
+        const offset = req.query?.offset || 0
+        const data = await userActivityService.userDetails(limit, offset)
+      return res
+        .status(200)
+        .json({ message: "users detail data", status: "success", data: data });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default UserActivityHandler;
