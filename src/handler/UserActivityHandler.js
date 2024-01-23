@@ -37,9 +37,7 @@ class UserActivityHandler {
  
   static async userDetails(req, res, next) {
     try {
-        const limit = req.query?.limit || 10
-        const offset = req.query?.offset || 0
-        const data = await userActivityService.userDetails(limit, offset)
+        const data = await userActivityService.userDetails()
       return res
         .status(200)
         .json({ message: "users detail data", status: "success", data: data });
