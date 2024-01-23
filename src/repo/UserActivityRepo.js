@@ -219,7 +219,7 @@ class UserActivityRepo {
         return responseData
     }
 
-    async getUserDetail(limit, offset) {
+    async getUserDetail() {
         let queryStr = `
         SELECT
             DISTINCT email,
@@ -229,10 +229,8 @@ class UserActivityRepo {
             phone_number
             FROM user_activities ua
         GROUP BY email, name, age, gender, phone_number
-        LIMIT $1
-        OFFSET $2
     `
-        let responseData = await pgQueryHandler(queryStr, [limit, offset])
+        let responseData = await pgQueryHandler(queryStr)
         return responseData
     }
 
@@ -241,6 +239,15 @@ class UserActivityRepo {
         SELECT
             COUNT(DISTINCT email)
             FROM user_activities ua
+        `
+        let responseData = await pgQueryHandler(queryStr)
+        return responseData
+    }
+
+    async getDataForCountUserNewAndReturning() {
+        let queryStr = `
+        select name, TO_CHAR(date, 'Day DD Month YYYY') AS date, login_hour from user_activities ua
+        order by "date", login_hour
         `
         let responseData = await pgQueryHandler(queryStr)
         return responseData

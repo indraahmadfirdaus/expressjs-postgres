@@ -9,9 +9,6 @@ router.route('/user-activities/summary')
 router.route('/user-activities/segmentation')
     .get(UserActivityHandler.getSegmentation)
 
-router.route('/user-activities/top-five-per-location')
-    .get(UserActivityHandler.topFivePerLocation)
-
 router.route('/user-activities/user-details')
     .get(UserActivityHandler.userDetails)
 

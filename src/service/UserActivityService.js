@@ -6,14 +6,12 @@ class UserActivityService {
         const [
             uniqueUserAll,
             uniqueUserPerDay,
-            countAndNewReturningUser,
             mostCrowdedDay,
             mostCrowdedLoginHour,
             totalData
         ] = await Promise.all([
             userActivityRepo.getDistinctUserAll(),
             userActivityRepo.getUniquerUserPerDay(),
-            userActivityRepo.getCountNewAndReturningUser(),
             userActivityRepo.getMostCrowdedDay(),
             userActivityRepo.getMostCrowdedLoginHour(),
             userActivityRepo.getTotalData()
@@ -21,7 +19,8 @@ class UserActivityService {
         return {
             unique_user_all: uniqueUserAll.rows[0].unique_user_by_email,
             unique_user_per_day: uniqueUserPerDay.rows,
-            count_new__and_returning_user_all: countAndNewReturningUser.rows,
+            count_new_and_returning_per_day: await this.summarizeNewAndReturningPerDay(),
+            count_new_and_returning_user_all: await this.summarizeNewAndReturningAll(),
             most_crowded_day: mostCrowdedDay.rows,
             most_crowded_login_hour: mostCrowdedLoginHour.rows,
             total_data: totalData.rows[0].total_data
@@ -53,13 +52,52 @@ class UserActivityService {
         return topFiveUserByLocationsData.rows
     }
 
-    async userDetails(limit, offset) {
-        const userDetails = await userActivityRepo.getUserDetail(limit, offset)
-        const countUser = await userActivityRepo.countAllUser()
+    async userDetails() {
+        const userDetails = await userActivityRepo.getUserDetail()
+        const topFiveUserByLocationsData = await userActivityRepo.getTopFiveUserPerLocation()
         return {
-            count: countUser.rows[0].count,
-            rows: userDetails.rows,
+            top_five_user_by_locations: topFiveUserByLocationsData.rows,
+            user_details: userDetails.rows,
         }
+    }
+
+    async summarizeNewAndReturningPerDay() {
+        const data = await userActivityRepo.getDataForCountUserNewAndReturning()
+        const response = {}
+        // { date: { new: number, returning: number } }
+        const memory = {}
+        for (const each of data.rows) {
+            const date = each.date
+            
+            if(!response[date]) {
+                response[date] = {
+                    new: 0,
+                    returning: 0
+                }
+            }
+
+            if(memory[each.name]) {
+                response[date].returning += 1
+            } else {
+                memory[each.name] = 1
+                response[date].new += 1
+            }
+        }
+
+        return response
+
+    }
+
+    async summarizeNewAndReturningAll() {
+        const data = await this.summarizeNewAndReturningPerDay()
+        const response = { new: 0, returning: 0 }
+
+        for (const key in data) {
+            response.new += data[key].new
+            response.returning += data[key].returning
+        }
+
+        return response
     }
 
 }
